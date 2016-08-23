@@ -20,7 +20,7 @@ String tmpString;
 int adjustment = 100;
 int faster = 0;
 
-int minnierThrottle = 1700;
+int minThrottle = 1700;
 int tmpInt;
 int midPitch = rcData[PITCH];
 int midRoll = rcData[ROLL];
@@ -28,15 +28,7 @@ int midRoll = rcData[ROLL];
 //********************Roll and Pitch***************//
 bool state[4] = {0,0,0,0};  //north, east, south, west in that order
 int timeout=0, timeout1=0;
-//int direc, direc1;
-//unsigned long previousMillis1, previousMillis2, previousMillis3, previousMillis4;
-//bool go = 1, go1 = 1;
-//int adjustment = 100;
-//int dip = 500;
-//double compFrac = 0.5;
-//bool infrared = 0;
 int count = 0;
-//int count2 = 0;
 
 ///************************************** MultiWii Serial Protocol *******************************************************/
 //// Multiwii Serial Protocol 0
@@ -257,7 +249,7 @@ void serialCom() {
               c = SerialRead(CURRENTPORT);
               thrLevel += (char)c;
             }
-            tmpInt = MAX(minnierThrottle, thrLevel.toInt());
+            tmpInt = MAX(minThrottle, thrLevel.toInt());
             conf.throttleIn = tmpInt;
             thrLevel = "";
           }
@@ -305,7 +297,7 @@ void serialCom() {
               c = SerialRead(CURRENTPORT);
               tmpString += (char)c;
             }
-            minnierThrottle=tmpString.toInt();
+            minThrottle=tmpString.toInt();
             tmpString = "";
           }
           break;
@@ -336,7 +328,7 @@ void serialCom() {
 //            faster++;
           break;
       }
-    }
+    } //while receiving data
       
       /****PITCH/ROLL****/
         conf.pitchIn = midPitch + (state[2] - state[0])*(adjustment);
@@ -359,65 +351,9 @@ void serialCom() {
 //        }
         
         count++;
-//        count2++;
-      
-//      if (((currentMillis-previousMillis1) >= 1000) && timeout==1 && state[0]){
-//       //Serial.print("p" + String(midVal[0] - (int)(compFrac*direc)));
-//       conf.pitchIn = 1491-30;
-//       previousMillis2 = currentMillis;
-//       timeout =2;
-//       //direc = 0;
-//       go = 1;
-//     }
-//      
-//      if (((currentMillis-previousMillis2) >= 500) && timeout==2){
-//       //Serial.print("p" + String(midVal[0]));
-//       conf.pitchIn = 1491;
-//       timeout =0;
-//       state[0]=1;
-//      }
-
-    
-    //      #ifdef SUPPRESS_ALL_SERIAL_MSP
-    //        // no MSP handling, so go directly
-    //        evaluateOtherData(c);
-    //      #else
-    //        // regular data handling to detect and handle MSP and other data
-    //        if (c_state[CURRENTPORT] == IDLE) {
-    //          c_state[CURRENTPORT] = (c=='$') ? HEADER_START : IDLE;
-    //          if (c_state[CURRENTPORT] == IDLE) ; //evaluateOtherData(c); // evaluate all other incoming serial data
-    //        } else if (c_state[CURRENTPORT] == HEADER_START) {
-    //          c_state[CURRENTPORT] = (c=='M') ? HEADER_M : IDLE;
-    //        } else if (c_state[CURRENTPORT] == HEADER_M) {
-    //          c_state[CURRENTPORT] = (c=='<') ? HEADER_ARROW : IDLE;
-    //        } else if (c_state[CURRENTPORT] == HEADER_ARROW) {
-    //          if (c > INBUF_SIZE) {  // now we are expecting the payload size
-    //            c_state[CURRENTPORT] = IDLE;
-    //            continue;
-    //          }
-    //          dataSize[CURRENTPORT] = c;
-    //          offset[CURRENTPORT] = 0;
-    //          checksum[CURRENTPORT] = 0;
-    //          indRX[CURRENTPORT] = 0;
-    //          checksum[CURRENTPORT] ^= c;
-    //          c_state[CURRENTPORT] = HEADER_SIZE;  // the command is to follow
-    //        } else if (c_state[CURRENTPORT] == HEADER_SIZE) {
-    //          cmdMSP[CURRENTPORT] = c;
-    //          checksum[CURRENTPORT] ^= c;
-    //          c_state[CURRENTPORT] = HEADER_CMD;
-    //        } else if (c_state[CURRENTPORT] == HEADER_CMD && offset[CURRENTPORT] < dataSize[CURRENTPORT]) {
-    //          checksum[CURRENTPORT] ^= c;
-    //          inBuf[offset[CURRENTPORT]++][CURRENTPORT] = c;
-    //        } else if (c_state[CURRENTPORT] == HEADER_CMD && offset[CURRENTPORT] >= dataSize[CURRENTPORT]) {
-    //          if (checksum[CURRENTPORT] == c) {  // compare calculated and transferred checksum
-    //            evaluateCommand();  // we got a valid packet, evaluate it
-    //          }
-    //          c_state[CURRENTPORT] = IDLE;
-    //          cc = 0; // no more than one MSP per port and per cycle
-    //        }
-    //      #endif // SUPPRESS_ALL_SERIAL_MSP
-  }
-  }
+        
+  } //for n < UART_NUMBER
+} //serialCom()
 
 //void  s_struct(uint8_t *cb,uint8_t siz) {
 //  headSerialReply(siz);
