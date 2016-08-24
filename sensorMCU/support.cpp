@@ -26,11 +26,11 @@ void SRF01_Cmd(byte Address, byte cmd, SoftwareSerial bus) {                    
   }
 }
 
-void blueInterpret(char blueval, SoftwareSerial bus, int trimStep) {
+void blueInterpret(char blueval, SoftwareSerial bus) {
 
-  uint8_t c;
-  String tmpStr;
-//  int tmpInt;
+  uint8_t c;        // input char variable
+  String tmpStr;    // concatenated input chars variable
+  int trimStep = 2; // amount pitch/roll/yaw is adjusted when sending north/west/south/east
 
   switch (blueval) {
 
@@ -94,7 +94,7 @@ void blueInterpret(char blueval, SoftwareSerial bus, int trimStep) {
       tmpStr = "";
       break;
 
-    case 'p': //if (blueval == 'k') {
+    case 'p':
       for (int i = 0; i < 4; i++) {
         c = bus.read();
         tmpStr += (char)c;
@@ -104,7 +104,7 @@ void blueInterpret(char blueval, SoftwareSerial bus, int trimStep) {
       tmpStr = "";
       break;
 
-    case 'i': //if (blueval == 'k') {
+    case 'i':
       for (int i = 0; i < 4; i++) {
         c = bus.read();
         tmpStr += (char)c;
@@ -114,7 +114,7 @@ void blueInterpret(char blueval, SoftwareSerial bus, int trimStep) {
       tmpStr = "";
       break;
 
-    case 'd': //if (blueval == 'k') {
+    case 'd':
       for (int i = 0; i < 4; i++) {
         c = bus.read();
         tmpStr += (char)c;

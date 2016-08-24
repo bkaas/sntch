@@ -1,9 +1,7 @@
-#include <PID_v1.h>
-#include <SoftwareSerial.h>
-
-#include <avr/power.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
+// Not sure what these are for
+//#include <avr/power.h>
+//#include <avr/io.h>
+//#include <avr/interrupt.h>
 
 #include "main.h"
 #include "support.h"
@@ -11,34 +9,53 @@
 SoftwareSerial UltrasonicBus(txrxPin, txrxPin);
 SoftwareSerial blue(8, 7); //RX, TX
 
-//must be defined....
-extern double Output = 0;
+// Sensor enables, initially off
+bool ultra = 0;
+bool infrared = 0;
 
-extern int minThrottle = 1700;
-extern bool ultra = 0;
-extern bool infrared = 0;
-extern double dist = 0;
-extern double p = 2.8, i = 0.0, d = 0.0; //p=2.8, i=0.81
-extern int midVal[3] = {1591,1520,1518}; // {1491, 1522, 1561}; // pitch roll yaw midVal[1] = 1500; int midVal[0] = 1500; int midVal[2] = 1500;
-extern double setPoint = 100;
+// stores chars read from bluetooth
 char blueval;
 
-//Specify the links and initial tuning parameters
-PID myPID(&dist, &Output, &setPoint, p, i, d, DIRECT);
+// quad height as read by the ultrasonic sensor
+double height;
+
+// PID
+double OutputPID;
+double setPoint = 100;
+double p = 2.8, i = 0.0, d = 0.0; //p=2.8, i=0.81
+PID myPID(&height, &OutputPID, &setPoint, p, i, d, DIRECT);
+
+// Initial minimum throttle value, and initial pitch/roll/yaw mid points
+int minThrottle = 1700;
+int midVal[3] = {1591,1520,1518}; // pitch roll yaw
 
 
-int trimStep = 2;
+// IR sensors:
 
-// IR sensors
-byte irPinN = 11; //12 ;
-byte irPinE = 9; //11;
-byte irPinS = A5; //9;
-byte irPinW = 12; //A5;
-extern byte frontRedLED = 13;
+// Pins
+byte irPinN = 11;
+byte irPinE = 9;
+byte irPinS = A5;
+byte irPinW = 12;
 
-// Roll and Pitch movement stuff
-bool state[4] = {1,1,1,1};  //north, east, south, west in that order
-unsigned long previousMillis = 0;
+// Pin states
+bool state[4] = {1,1,1,1};    //north, east, south, west in that order
+
+// Minimum height (cm) for operation
+int irMinHeight = 10;
+
+// A triggered IR sensor must will not send an action to the quad if itself or another IR
+// sensor has sent an action within minTriggerTime span (ms)
+int minTriggerTime = 250;
+unsigned long previousMillis = 0; // counter
+
+// IR sensors end.
+
+
+// Front red LEDs pin, used as indicators
+byte frontRedLED = 13;
+
+
 
 void setup() {
 
@@ -68,15 +85,15 @@ void loop()  {
     UltrasonicBus.listen();
     if (UltrasonicBus.isListening()) {
 
-      dist = doRange(srfAddress2, UltrasonicBus);
+      height = doRange(srfAddress2, UltrasonicBus);
       myPID.Compute();
-      float thrLevel = minThrottle + map(Output, 0, 255, 0, 1999 - minThrottle);
+      float thrLevel = minThrottle + map(OutputPID, 0, 255, 0, 1999 - minThrottle);
 
       Serial.print("t" + String(int(thrLevel)));
     }
   }
   
-  if ( infrared && dist > 10 ) {
+  if ( infrared && height > irMinHeight ) {
     
     /****PITCH/ROLL****/
     state[0] = digitalRead(irPinN);
@@ -84,22 +101,22 @@ void loop()  {
     state[1] = digitalRead(irPinE);
     state[3] = digitalRead(irPinW);
 
-    if (!state[0] && (currentMillis - previousMillis) >= 250) {
+    if (!state[0] && (currentMillis - previousMillis) >= minTriggerTime) {
       Serial.print('x');
       previousMillis = currentMillis;
     }
 
-    if (!state[2] && (currentMillis - previousMillis) >= 250) {
+    if (!state[2] && (currentMillis - previousMillis) >= minTriggerTime) {
       Serial.print('y');
       previousMillis = currentMillis;
     }
 
-    if (!state[1] && (currentMillis - previousMillis) >= 250) {
+    if (!state[1] && (currentMillis - previousMillis) >= minTriggerTime) {
       Serial.print('z');
       previousMillis = currentMillis;
     }
 
-    if (!state[3] && (currentMillis - previousMillis) >= 250) {
+    if (!state[3] && (currentMillis - previousMillis) >= minTriggerTime) {
       Serial.print('u');
       previousMillis = currentMillis;
     }
@@ -112,6 +129,6 @@ void loop()  {
     blueval = blue.read();
   }
 
-  blueInterpret(blueval, blue, trimStep);
+  blueInterpret(blueval, blue);
   
 }
