@@ -6,6 +6,11 @@
 
   The sensor board receives sensor data and relays the processed data to the quad's Atmega328P
 
+  main.cpp
+    -> contains classic arduino code with setup() and loop() functions
+
+  support.cpp
+    -> contains support functions to main.cpp
 
 
     Authors:

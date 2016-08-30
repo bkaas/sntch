@@ -1,4 +1,25 @@
 /*
+   
+   The firmware is based off open source code called MultiWii.
+   This is the same code used in Wii controllers.
+   It has been adapted to be used for this HobbyKing Micro X quadcopter and 
+   is posted here: http://www.rcgroups.com/forums/showthread.php?t=2090915
+
+   The code to ensure reliable serial communication with the sensor board
+   is located in Protocol.cpp
+   
+   
+   Editors;
+   
+   Alex Ianovski
+   Brendan Kaas
+   Danial Elbirt
+   Eric Daigle
+   
+   
+
+   Message from Authors:
+   
    Welcome to MultiWii.
 
    If you see this message, chances are you are using the Arduino IDE. That is ok.
